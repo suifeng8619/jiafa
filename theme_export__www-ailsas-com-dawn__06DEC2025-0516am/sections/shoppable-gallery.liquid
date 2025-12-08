@@ -1,0 +1,1065 @@
+{{ 'section-shoppable-gallery.css' | asset_url | append: '?v=2' | stylesheet_tag }}
+
+<div class="shoppable-gallery page-width">
+  {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+    <div class="shoppable-gallery__header">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="shoppable-gallery__title">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+      {%- if section.settings.subheading != blank -%}
+        <p class="shoppable-gallery__subtitle">{{ section.settings.subheading }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <div class="shoppable-gallery__grid" id="shoppable-gallery-grid">
+    {%- comment -%} 计算可见项目数量 {%- endcomment -%}
+    {%- assign visible_count = 0 -%}
+    {%- for block in section.blocks -%}
+      {%- assign is_approved = block.settings.approved | default: true -%}
+      {%- if is_approved or section.settings.show_pending -%}
+        {%- assign visible_count = visible_count | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+    
+    {%- assign current_index = 0 -%}
+    {%- for block in section.blocks -%}
+      {%- comment -%} Only show approved items unless show_pending is enabled {%- endcomment -%}
+      {%- assign is_approved = block.settings.approved | default: true -%}
+      {%- if is_approved or section.settings.show_pending -%}
+        {%- assign current_index = current_index | plus: 1 -%}
+        {%- comment -%} 如果未展开且有8个或以上项目，在第8个位置插入上传按钮 {%- endcomment -%}
+        {%- if current_index == 8 and visible_count >= 8 and section.settings.show_upload_button -%}
+          <div class="shoppable-gallery__item shoppable-gallery__item--upload shoppable-gallery__item--upload-replace" id="shoppable-upload-item-replace">
+            <div class="shoppable-gallery__upload-box">
+              <button class="shoppable-gallery__upload-box-btn" id="shoppable-upload-modal-trigger-replace" aria-label="Upload your photo">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span class="shoppable-gallery__upload-box-text">{{ section.settings.upload_button_text | default: 'Share Your Style' }}</span>
+              </button>
+            </div>
+          </div>
+        {%- endif -%}
+      <div class="shoppable-gallery__item{% unless is_approved %} shoppable-gallery__item--pending{% endunless %}{% if current_index == 8 and visible_count >= 8 and section.settings.show_upload_button %} shoppable-gallery__item--hidden-when-collapsed{% endif %}" {{ block.shopify_attributes }}>
+        {%- if block.settings.image != blank -%}
+          <div class="shoppable-gallery__image-wrapper">
+            {{
+              block.settings.image
+              | image_url: width: 800
+              | image_tag:
+                loading: 'lazy',
+                class: 'shoppable-gallery__image',
+                alt: block.settings.image.alt
+            }}
+            
+            {%- if block.settings.product != blank -%}
+              {%- assign product = block.settings.product -%}
+              {%- assign unique_id = 'product-' | append: block.id -%}
+              
+              <script type="application/json" id="{{ unique_id }}" style="display:none;">
+                {
+                  "id": {{ product.id | json }},
+                  "title": {{ product.title | json }},
+                  "url": {{ product.url | json }},
+                  "handle": {{ product.handle | json }},
+                  "has_only_default_variant": {{ product.has_only_default_variant | json }},
+                  "options_with_values": {{ product.options_with_values | json }},
+                  "variants": [
+                    {%- for variant in product.variants -%}
+                      {
+                        "id": {{ variant.id | json }},
+                        "title": {{ variant.title | json }},
+                        "price": {{ variant.price | json }},
+                        "compare_at_price": {{ variant.compare_at_price | json }},
+                        "available": {{ variant.available | json }},
+                        "options": {{ variant.options | json }}
+                        {%- if variant.featured_image -%}
+                          ,"featured_image": {
+                            "src": {{ variant.featured_image.src | json }}
+                          }
+                        {%- endif -%}
+                      }{% unless forloop.last %},{% endunless %}
+                    {%- endfor -%}
+                  ]
+                }
+              </script>
+              
+              <button 
+                class="shoppable-gallery__hotspot" 
+                data-product-id="{{ product.id }}"
+                data-product-url="{{ product.url }}"
+                data-product-handle="{{ product.handle }}"
+                data-product-title="{{ product.title }}"
+                data-product-price="{{ product.selected_or_first_available_variant.price }}"
+                {%- if product.selected_or_first_available_variant.compare_at_price > product.selected_or_first_available_variant.price -%}
+                  data-product-compare-price="{{ product.selected_or_first_available_variant.compare_at_price }}"
+                {%- endif -%}
+                data-gallery-image="{{ block.settings.image | image_url: width: 800 }}"
+                {%- if product.featured_image -%}
+                  data-product-image="{{ product.featured_image | image_url: width: 600 }}"
+                {%- endif -%}
+                data-product-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                data-product-has-only-default="{{ product.has_only_default_variant }}"
+                data-product-data-id="{{ unique_id }}"
+                aria-label="{{ 'products.product.view' | t }}: {{ product.title }}"
+              >
+                <span class="shoppable-gallery__hotspot-icon">+</span>
+              </button>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+    {%- endfor -%}
+    
+    {%- comment -%} 上传按钮作为最后一个框（展开时显示） {%- endcomment -%}
+    {%- if section.settings.show_upload_button -%}
+      <div class="shoppable-gallery__item shoppable-gallery__item--upload shoppable-gallery__item--upload-last" id="shoppable-upload-item">
+        <div class="shoppable-gallery__upload-box">
+          <button class="shoppable-gallery__upload-box-btn" id="shoppable-upload-modal-trigger" aria-label="Upload your photo">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span class="shoppable-gallery__upload-box-text">{{ section.settings.upload_button_text | default: 'Share Your Style' }}</span>
+          </button>
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+  
+  {%- if section.blocks.size > 8 -%}
+    <div class="shoppable-gallery__show-more-wrapper">
+      <button class="shoppable-gallery__show-more-btn" id="shoppable-show-more">
+        <span class="show-more-text">Show More</span>
+        <svg class="show-more-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  {%- endif -%}
+
+</div>
+
+{%- comment -%} 上传模态框结构 {%- endcomment -%}
+<div class="shoppable-gallery__upload-modal" id="shoppable-upload-modal" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
+  <div class="shoppable-gallery__upload-modal-overlay"></div>
+  <div class="shoppable-gallery__upload-modal-content">
+    <button class="shoppable-gallery__upload-modal-close" aria-label="关闭">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    
+    <div class="shoppable-gallery__upload-modal-body">
+      <h2 class="shoppable-gallery__upload-modal-title" id="upload-modal-title">Share Your Style</h2>
+      <p class="shoppable-gallery__upload-modal-description">Upload your photos featuring our products!</p>
+
+      {%- comment -%} Acerill Form Builder 表单 {%- endcomment -%}
+      <div class="acerill-form-wrapper" id="acerill-form-wrapper-7fc96da5-89dc-4caa-9c13-7bb7f7d591e7">
+        {%- comment -%} 渲染所有 app embed blocks（包括 Acerill Form Builder） {%- endcomment -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == '@app' -%}
+            <div class="acerill-app-block" {{ block.shopify_attributes }}>
+              {% render block %}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- comment -%} 保留原有的 contact form 作为备用（已隐藏） {%- endcomment -%}
+      {%- form 'contact', id: 'UploadModalForm', class: 'shoppable-gallery__upload-form', return_to: request.path, style: 'display: none;' -%}
+        <input type="hidden" name="contact[subject]" value="Gallery Upload Request">
+        <input type="hidden" name="contact[tags]" value="gallery_upload">
+        
+        {%- if form.posted_successfully? -%}
+          <div class="shoppable-gallery__upload-message shoppable-gallery__upload-message--success">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <p>Thank you! Your submission has been received and is pending review.</p>
+          </div>
+        {%- elsif form.errors -%}
+          <div class="shoppable-gallery__upload-message shoppable-gallery__upload-message--error">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>{{ 'templates.contact.form.error_heading' | t }}</p>
+            {%- if form.errors.messages.captcha -%}
+              <p style="margin-top: 0.5rem; font-size: 0.9rem;">Please try submitting again. The security verification may need a moment to load.</p>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        <div class="shoppable-gallery__upload-fields">
+          <div class="field">
+            <label class="field__label" for="UploadModalForm-name">
+              {{ 'templates.contact.form.name' | t }} <span class="required">*</span>
+            </label>
+            <input 
+              class="field__input" 
+              type="text" 
+              id="UploadModalForm-name" 
+              name="contact[name]"
+              value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+              required
+              autocomplete="name"
+            >
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="UploadModalForm-email">
+              {{ 'templates.contact.form.email' | t }} <span class="required">*</span>
+            </label>
+            <input 
+              class="field__input" 
+              type="email" 
+              id="UploadModalForm-email" 
+              name="contact[email]"
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+              required
+              autocomplete="email"
+            >
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="UploadModalForm-product">
+              Product <span class="required">*</span>
+            </label>
+            <input 
+              type="text" 
+              class="field__input" 
+              id="UploadModalForm-product" 
+              name="contact[product_title]"
+              placeholder="Enter product name..."
+              required
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="field field--file">
+            <label class="field__label" for="UploadModalForm-image">
+              Upload Image <span class="required">*</span>
+            </label>
+            <div class="file-upload-wrapper">
+              <input 
+                type="file" 
+                id="UploadModalForm-image" 
+                accept="image/*"
+                class="file-upload-input"
+              >
+              <label for="UploadModalForm-image" class="file-upload-label">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span class="file-upload-text">Choose an image</span>
+                <span class="file-upload-filename"></span>
+              </label>
+              <div class="file-preview" id="upload-modal-image-preview"></div>
+            </div>
+            <input type="hidden" id="UploadModalForm-image-data" name="contact[image_data]">
+            <p class="field__help">Maximum file size: 5MB. Supported formats: JPG, PNG, GIF</p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="UploadModalForm-message">
+              Message (Optional)
+            </label>
+            <textarea 
+              class="field__input text-area" 
+              id="UploadModalForm-message" 
+              name="contact[body]"
+              rows="4"
+              placeholder="Tell us about your photo..."
+            >{{ form.body }}</textarea>
+          </div>
+        </div>
+
+        <div class="shoppable-gallery__upload-submit">
+          <button type="submit" class="button button--primary" id="upload-modal-submit-btn">
+            Submit for Review
+          </button>
+        </div>
+      {%- endform -%}
+    </div>
+  </div>
+</div>
+
+{%- comment -%} 产品模态框结构 {%- endcomment -%}
+<div class="shoppable-gallery__modal" id="shoppable-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="shoppable-gallery__modal-overlay"></div>
+  <div class="shoppable-gallery__modal-content">
+    <button class="shoppable-gallery__modal-close" aria-label="关闭">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    
+    <div class="shoppable-gallery__modal-body">
+      <div class="shoppable-gallery__product-card">
+        <div class="shoppable-gallery__product-image-wrapper">
+          <img src="" alt="" id="modal-product-featured-image" class="shoppable-gallery__product-image">
+        </div>
+        
+        <h3 class="shoppable-gallery__modal-title" id="modal-title"></h3>
+        
+        <div class="shoppable-gallery__modal-price">
+          <span class="price" id="modal-price"></span>
+          <span class="price--compare" id="modal-compare-price"></span>
+        </div>
+        
+        <a 
+          href="#" 
+          class="shoppable-gallery__view-details button button--primary"
+          id="modal-view-product"
+        >
+          Shop Now
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  class ShoppableGallery {
+    constructor() {
+      this.modal = document.getElementById('shoppable-modal');
+      this.closeBtn = this.modal.querySelector('.shoppable-gallery__modal-close');
+      this.overlay = this.modal.querySelector('.shoppable-gallery__modal-overlay');
+      this.moneyFormat = '{{ shop.money_format }}';
+      this.showMoreBtn = document.getElementById('shoppable-show-more');
+      this.galleryGrid = document.getElementById('shoppable-gallery-grid');
+      this.isExpanded = false;
+      
+      this.uploadModal = document.getElementById('shoppable-upload-modal');
+      this.uploadModalClose = this.uploadModal?.querySelector('.shoppable-gallery__upload-modal-close');
+      this.uploadModalOverlay = this.uploadModal?.querySelector('.shoppable-gallery__upload-modal-overlay');
+      
+      this.init();
+      this.initShowMore();
+      this.initUploadModal();
+    }
+    
+    init() {
+      // 绑定热点点击事件
+      const hotspots = document.querySelectorAll('.shoppable-gallery__hotspot');
+      console.log('Found hotspots:', hotspots.length);
+      
+      hotspots.forEach((hotspot, index) => {
+        console.log(`Hotspot ${index}:`, hotspot.dataset);
+        hotspot.addEventListener('click', (e) => {
+          console.log('Hotspot clicked:', e.currentTarget.dataset);
+          this.openModal(e.currentTarget);
+        });
+      });
+      
+      // 绑定关闭事件
+      this.closeBtn.addEventListener('click', () => this.closeModal());
+      this.overlay.addEventListener('click', () => this.closeModal());
+      
+      // ESC 键关闭
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.modal.classList.contains('shoppable-gallery__modal--active')) {
+          this.closeModal();
+        }
+      });
+    }
+    
+    openModal(hotspot) {
+      try {
+        // 从script标签读取产品数据
+        const dataId = hotspot.dataset.productDataId;
+        const scriptTag = document.getElementById(dataId);
+        
+        if (!scriptTag) {
+          throw new Error('Product data not found');
+        }
+        
+        const productJsonStr = scriptTag.textContent;
+        console.log('Product JSON string:', productJsonStr);
+        
+        const product = JSON.parse(productJsonStr);
+        const hasOnlyDefault = hotspot.dataset.productHasOnlyDefault === 'true';
+        
+        const priceValue = hotspot.dataset.productPrice;
+        const comparePriceValue = hotspot.dataset.productComparePrice;
+      
+      // 构建产品 URL - 优先使用 product.url，如果没有则使用 handle
+      let productUrl = product.url || hotspot.dataset.productUrl;
+      if (!productUrl && (product.handle || hotspot.dataset.productHandle)) {
+        const handle = product.handle || hotspot.dataset.productHandle;
+        productUrl = '/products/' + handle;
+      }
+      
+      this.currentProduct = {
+        id: product.id,
+        url: productUrl,
+        handle: product.handle || hotspot.dataset.productHandle,
+        title: product.title || hotspot.dataset.productTitle,
+        price: parseInt(priceValue),
+        comparePrice: comparePriceValue ? parseInt(comparePriceValue) : null,
+        galleryImage: hotspot.dataset.galleryImage, // 画廊原图
+        productImage: hotspot.dataset.productImage, // 产品图片
+        variantId: hotspot.dataset.productVariantId,
+        hasOnlyDefault: hasOnlyDefault,
+        options: product.options_with_values || [],
+        variants: product.variants || []
+      };
+      
+      // 填充模态框内容
+      document.getElementById('modal-title').textContent = this.currentProduct.title;
+      document.getElementById('modal-price').innerHTML = this.formatMoney(this.currentProduct.price);
+      
+      const comparePriceEl = document.getElementById('modal-compare-price');
+      if (this.currentProduct.comparePrice) {
+        comparePriceEl.innerHTML = this.formatMoney(this.currentProduct.comparePrice);
+        comparePriceEl.style.display = 'inline';
+      } else {
+        comparePriceEl.style.display = 'none';
+      }
+      
+      // 设置查看详情链接
+      const viewProductLink = document.getElementById('modal-view-product');
+      if (viewProductLink) {
+        // 优先使用 URL，如果没有则使用 handle 构建 URL
+        let productUrl = this.currentProduct.url;
+        
+        if (!productUrl && this.currentProduct.handle) {
+          // 如果没有 URL，使用 handle 构建产品 URL
+          productUrl = '/products/' + this.currentProduct.handle;
+        }
+        
+        if (productUrl) {
+          // 确保 URL 是完整的路径
+          // 如果 URL 不是以 http 开头，确保它是相对路径
+          if (!productUrl.startsWith('http') && !productUrl.startsWith('/')) {
+            productUrl = '/' + productUrl;
+          }
+          viewProductLink.href = productUrl;
+          viewProductLink.style.pointerEvents = 'auto';
+          viewProductLink.style.cursor = 'pointer';
+          console.log('Product URL set to:', productUrl, 'from:', {
+            url: this.currentProduct.url,
+            handle: this.currentProduct.handle
+          });
+        } else {
+          console.error('Product URL not found:', {
+            linkElement: viewProductLink,
+            productUrl: this.currentProduct.url,
+            handle: this.currentProduct.handle,
+            productData: this.currentProduct
+          });
+          // 如果都没有，设置为 # 防止链接错误
+          viewProductLink.href = '#';
+          viewProductLink.style.pointerEvents = 'none';
+          viewProductLink.style.cursor = 'not-allowed';
+        }
+      }
+      
+      // 显示产品图片
+      const productImageEl = document.getElementById('modal-product-featured-image');
+      if (this.currentProduct.productImage) {
+        productImageEl.src = this.currentProduct.productImage;
+        productImageEl.alt = this.currentProduct.title;
+      }
+      
+      // 显示模态框
+      this.modal.classList.add('shoppable-gallery__modal--active');
+      document.body.style.overflow = 'hidden';
+      
+      // 聚焦到关闭按钮以提升可访问性
+      setTimeout(() => this.closeBtn.focus(), 300);
+      
+      } catch (error) {
+        console.error('Error opening modal:', error);
+        console.error('Product data:', hotspot.dataset);
+        alert('Sorry, there was an error loading this product. Please try again.');
+      }
+    }
+    
+    formatMoney(cents) {
+      // 确保价格是数字
+      if (isNaN(cents) || cents === null || cents === undefined) {
+        return '£0.00';
+      }
+      
+      // Shopify 价格以 cents 为单位，需要转换为货币单位
+      const amount = (cents / 100).toFixed(2);
+      const amountNoDec = Math.floor(cents / 100).toString();
+      const amountWithComma = amount.replace('.', ',');
+      
+      // 优先使用 Shopify 的内置函数
+      if (typeof Shopify !== 'undefined' && Shopify.formatMoney) {
+        return Shopify.formatMoney(cents, this.moneyFormat);
+      }
+      
+      // 备用格式化 - 手动替换 money format
+      // 使用字符串拼接避免 Liquid 解析问题
+      const openBrace = '{' + '{';
+      const closeBrace = '}' + '}';
+      
+      if (this.moneyFormat && this.moneyFormat.includes(openBrace)) {
+        let formatted = this.moneyFormat;
+        
+        // 按照最长到最短的顺序替换，避免部分匹配
+        formatted = formatted.replace(new RegExp(openBrace + 'amount_no_decimals_with_comma_separator' + closeBrace, 'g'), amountNoDec);
+        formatted = formatted.replace(new RegExp(openBrace + 'amount_with_comma_separator' + closeBrace, 'g'), amountWithComma);
+        formatted = formatted.replace(new RegExp(openBrace + 'amount_no_decimals' + closeBrace, 'g'), amountNoDec);
+        formatted = formatted.replace(new RegExp(openBrace + 'amount' + closeBrace, 'g'), amount);
+        
+        return formatted;
+      }
+      
+      // 如果没有 format，返回简单的 £ 格式
+      return '£' + amount;
+    }
+    
+    closeModal() {
+      this.modal.classList.remove('shoppable-gallery__modal--active');
+      document.body.style.overflow = '';
+    }
+    
+    initShowMore() {
+      if (!this.showMoreBtn || !this.galleryGrid) return;
+      
+      this.showMoreBtn.addEventListener('click', () => {
+        this.isExpanded = !this.isExpanded;
+        
+        if (this.isExpanded) {
+          this.galleryGrid.classList.add('shoppable-gallery__grid--expanded');
+          this.showMoreBtn.classList.add('shoppable-gallery__show-more-btn--expanded');
+          this.showMoreBtn.querySelector('.show-more-text').textContent = 'Show Less';
+        } else {
+          this.galleryGrid.classList.remove('shoppable-gallery__grid--expanded');
+          this.showMoreBtn.classList.remove('shoppable-gallery__show-more-btn--expanded');
+          this.showMoreBtn.querySelector('.show-more-text').textContent = 'Show More';
+          
+          // 滚动回画廊顶部
+          const gallery = document.querySelector('.shoppable-gallery');
+          if (gallery) {
+            gallery.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      });
+    }
+    
+    initUploadModal() {
+      const uploadTrigger = document.getElementById('shoppable-upload-modal-trigger');
+      
+      if (!this.uploadModal || !uploadTrigger) return;
+      
+      // 打开模态框 - 处理两个上传按钮
+      uploadTrigger.addEventListener('click', () => {
+        this.openUploadModal();
+      });
+      
+      const uploadTriggerReplace = document.getElementById('shoppable-upload-modal-trigger-replace');
+      if (uploadTriggerReplace) {
+        uploadTriggerReplace.addEventListener('click', () => {
+          this.openUploadModal();
+        });
+      }
+      
+      // 关闭模态框
+      if (this.uploadModalClose) {
+        this.uploadModalClose.addEventListener('click', () => this.closeUploadModal());
+      }
+      
+      if (this.uploadModalOverlay) {
+        this.uploadModalOverlay.addEventListener('click', () => this.closeUploadModal());
+      }
+      
+      // ESC 键关闭
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.uploadModal.classList.contains('shoppable-gallery__upload-modal--active')) {
+          this.closeUploadModal();
+        }
+      });
+      
+      // 初始化表单功能
+      this.initUploadForm();
+    }
+    
+    openUploadModal() {
+      this.uploadModal.classList.add('shoppable-gallery__upload-modal--active');
+      // 记录模态框打开的时间，用于检查 CAPTCHA 加载时间
+      this.uploadModal.dataset.openTime = Date.now().toString();
+      document.body.style.overflow = 'hidden';
+      
+      // 等待模态框动画完成后再初始化
+      setTimeout(() => {
+        this.uploadModalClose?.focus();
+        // 触发 Shopify 表单初始化，确保 CAPTCHA 加载
+        const form = document.getElementById('UploadModalForm');
+        if (form) {
+          // 使用统一的清理函数移除隐藏的 select 元素
+          if (typeof removeHiddenSelects === 'function') {
+            removeHiddenSelects();
+          }
+          
+          // 确保 Acerill 表单容器可见并加载表单
+          const acerillFormContainer = document.getElementById('acerill-form-7fc96da5-89dc-4caa-9c13-7bb7f7d591e7');
+          const acerillFormWrapper = document.getElementById('acerill-form-wrapper-7fc96da5-89dc-4caa-9c13-7bb7f7d591e7');
+          
+          if (acerillFormContainer || acerillFormWrapper) {
+            const container = acerillFormContainer || acerillFormWrapper;
+            container.style.display = 'block';
+            container.style.visibility = 'visible';
+            
+            // 尝试多种方式加载 Acerill 表单
+            const formId = '7fc96da5-89dc-4caa-9c13-7bb7f7d591e7';
+            
+            // 方法1: 查找所有可能的 Acerill 相关元素并触发加载
+            const acerillElements = document.querySelectorAll(`[data-acerill-form-id="${formId}"], [data-form-id="${formId}"], #acerill-form-${formId}`);
+            acerillElements.forEach(el => {
+              el.style.display = 'block';
+              el.style.visibility = 'visible';
+            });
+            
+            // 方法2: 检查是否有 Acerill 全局对象
+            const tryLoadAcerill = () => {
+              if (typeof window.AcerillFormBuilder !== 'undefined') {
+                if (window.AcerillFormBuilder.loadForm) {
+                  window.AcerillFormBuilder.loadForm(formId);
+                  return true;
+                } else if (window.AcerillFormBuilder.init) {
+                  window.AcerillFormBuilder.init();
+                  return true;
+                }
+              }
+              
+              if (typeof window.acerill !== 'undefined') {
+                if (window.acerill.loadForm) {
+                  window.acerill.loadForm(formId);
+                  return true;
+                } else if (window.acerill.init) {
+                  window.acerill.init();
+                  return true;
+                }
+              }
+              
+              // 检查是否有 Acerill 的全局初始化函数
+              if (typeof window.initAcerillForm === 'function') {
+                window.initAcerillForm(formId);
+                return true;
+              }
+              
+              return false;
+            };
+            
+            // 立即尝试加载
+            if (!tryLoadAcerill()) {
+              // 如果立即加载失败，等待一段时间后重试
+              let retryCount = 0;
+              const maxRetries = 10;
+              const retryInterval = setInterval(() => {
+                retryCount++;
+                if (tryLoadAcerill() || retryCount >= maxRetries) {
+                  clearInterval(retryInterval);
+                }
+              }, 200);
+            }
+            
+            // 方法3: 触发自定义事件，让 Acerill 监听并加载表单
+            const loadEvent = new CustomEvent('acerill:load', { 
+              detail: { formId: formId } 
+            });
+            document.dispatchEvent(loadEvent);
+            window.dispatchEvent(loadEvent);
+            
+            // 方法4: 尝试查找并触发 Acerill 的自动初始化
+            setTimeout(() => {
+              // 查找所有可能的 Acerill 初始化脚本
+              const scripts = document.querySelectorAll('script[data-acerill], script[src*="acerill"]');
+              scripts.forEach(script => {
+                if (script.src && !script.loaded) {
+                  const newScript = document.createElement('script');
+                  newScript.src = script.src;
+                  newScript.onload = () => {
+                    tryLoadAcerill();
+                  };
+                  document.head.appendChild(newScript);
+                  script.loaded = true;
+                }
+              });
+              
+              // 最后尝试：检查是否有通过 data 属性初始化的方式
+              const formElement = document.querySelector(`[data-acerill-form-id="${formId}"]`);
+              if (formElement) {
+                // 触发点击或其他事件来初始化
+                const initEvent = new Event('DOMContentLoaded', { bubbles: true });
+                formElement.dispatchEvent(initEvent);
+              }
+            }, 1000);
+          }
+        }
+      }, 300);
+    }
+    
+    closeUploadModal() {
+      this.uploadModal.classList.remove('shoppable-gallery__upload-modal--active');
+      document.body.style.overflow = '';
+    }
+    
+    initUploadForm() {
+      const form = document.getElementById('UploadModalForm');
+      if (!form) return;
+
+      // 使用统一的清理函数移除隐藏的 select 元素
+      if (typeof removeHiddenSelects === 'function') {
+        removeHiddenSelects();
+      } else {
+        // 如果函数还没定义，手动清理
+        const hiddenSelects = form.querySelectorAll('select[name="contact[product_id]"], select.product-select-hidden, select#UploadModalForm-product');
+        hiddenSelects.forEach(select => {
+          select.removeAttribute('required');
+          select.remove();
+        });
+        
+        const conflictingSelect = document.getElementById('UploadModalForm-product');
+        if (conflictingSelect && conflictingSelect.tagName === 'SELECT') {
+          conflictingSelect.removeAttribute('required');
+          conflictingSelect.remove();
+        }
+      }
+
+      const fileInput = document.getElementById('UploadModalForm-image');
+      const imagePreview = document.getElementById('upload-modal-image-preview');
+      const imageDataInput = document.getElementById('UploadModalForm-image-data');
+      const productInput = document.getElementById('UploadModalForm-product');
+      const submitBtn = document.getElementById('upload-modal-submit-btn');
+      const fileUploadText = form.querySelector('.file-upload-text');
+      const fileUploadFilename = form.querySelector('.file-upload-filename');
+
+      if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            this.value = '';
+            return;
+          }
+
+          if (!file.type.match('image.*')) {
+            alert('Please select an image file');
+            this.value = '';
+            return;
+          }
+
+          if (fileUploadText) fileUploadText.textContent = 'Change image';
+          if (fileUploadFilename) fileUploadFilename.textContent = file.name;
+
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            if (imagePreview) imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            if (imageDataInput) imageDataInput.value = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (form) {
+        // 使用捕获阶段确保在浏览器验证之前执行
+        form.addEventListener('submit', (e) => {
+          // 在提交前立即移除任何隐藏的 select 元素（防止验证错误）
+          // 必须在浏览器验证之前执行
+          if (typeof removeHiddenSelects === 'function') {
+            removeHiddenSelects();
+          }
+          
+          // 额外检查：移除任何带有 required 属性且被隐藏的 select
+          const allSelects = form.querySelectorAll('select[required]');
+          allSelects.forEach(select => {
+            const style = window.getComputedStyle(select);
+            if (style.display === 'none' || style.visibility === 'hidden' || select.offsetParent === null) {
+              select.removeAttribute('required');
+              select.remove();
+            }
+          });
+
+          // Validate image
+          if (!imageDataInput || !imageDataInput.value) {
+            e.preventDefault();
+            alert('Please upload an image');
+            if (fileInput) fileInput.focus();
+            return false;
+          }
+
+          // Validate product input
+          if (!productInput || !productInput.value.trim()) {
+            e.preventDefault();
+            alert('Please enter a product name');
+            productInput.focus();
+            return false;
+          }
+
+          // 将图片数据添加到消息中
+          const messageField = document.getElementById('UploadModalForm-message');
+          const userMessage = messageField ? (messageField.value || '').trim() : '';
+          
+          // 构建完整的消息内容
+          let fullMessage = userMessage;
+          if (fullMessage) {
+            fullMessage += '\n\n';
+          }
+          fullMessage += '--- Gallery Upload Information ---\n';
+          fullMessage += `Product: ${productInput.value}\n`;
+          if (fileInput && fileInput.files[0]) {
+            fullMessage += `Image File Name: ${fileInput.files[0].name}\n`;
+            fullMessage += `Image Size: ${(fileInput.files[0].size / 1024).toFixed(2)} KB\n`;
+          }
+          fullMessage += `Image Data (Base64): ${imageDataInput.value}`;
+          
+          if (messageField) {
+            messageField.value = fullMessage;
+          }
+
+          // 检查模态框打开的时间，确保 CAPTCHA 有足够时间加载
+          const modalOpenTime = this.uploadModal.dataset.openTime || Date.now();
+          const timeSinceOpen = Date.now() - parseInt(modalOpenTime);
+          
+          // 如果模态框刚打开（少于2秒），等待一下让 CAPTCHA 加载
+          if (timeSinceOpen < 2000) {
+            e.preventDefault();
+            
+            if (submitBtn) {
+              submitBtn.textContent = 'Loading security verification...';
+            }
+            
+            // 等待 CAPTCHA 加载完成
+            setTimeout(() => {
+              if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+              }
+              // 重新提交表单
+              form.submit();
+            }, 2000 - timeSinceOpen + 500);
+            
+            return false;
+          }
+
+          // 禁用提交按钮防止重复提交
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+          }
+
+          // 允许表单正常提交，让 Shopify 处理 CAPTCHA
+          // 不要阻止默认提交行为，这样 CAPTCHA token 才能正确生成和提交
+        });
+      }
+
+    }
+  }
+  
+  // 清理隐藏 select 元素的函数
+  function removeHiddenSelects() {
+    const form = document.getElementById('UploadModalForm');
+    if (!form) return;
+    
+    // 查找所有可能的隐藏 select 元素
+    const selectors = [
+      'select[name="contact[product_id]"]',
+      'select.product-select-hidden',
+      'select#UploadModalForm-product',
+      'select[style*="display: none"]',
+      'select[style*="display:none"]'
+    ];
+    
+    selectors.forEach(selector => {
+      try {
+        const selects = form.querySelectorAll(selector);
+        selects.forEach(select => {
+          const style = window.getComputedStyle(select);
+          if (style.display === 'none' || style.visibility === 'hidden' || select.offsetParent === null) {
+            select.removeAttribute('required');
+            select.remove();
+          }
+        });
+      } catch (e) {
+        // 忽略选择器错误
+      }
+    });
+    
+    // 特别检查 ID 冲突的 select 元素
+    const conflictingSelect = document.getElementById('UploadModalForm-product');
+    if (conflictingSelect && conflictingSelect.tagName === 'SELECT') {
+      conflictingSelect.removeAttribute('required');
+      conflictingSelect.remove();
+    }
+  }
+  
+  // 初始化
+  function initGallery() {
+    // 在初始化前先清理任何隐藏的 select 元素
+    removeHiddenSelects();
+    
+    new ShoppableGallery();
+    
+    // 使用 MutationObserver 监听 DOM 变化，自动清理新添加的隐藏 select
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) { // Element node
+            // 检查是否是隐藏的 select 元素
+            if (node.tagName === 'SELECT' && 
+                (node.name === 'contact[product_id]' || 
+                 node.id === 'UploadModalForm-product' ||
+                 node.classList.contains('product-select-hidden'))) {
+              const style = window.getComputedStyle(node);
+              if (style.display === 'none' || node.offsetParent === null) {
+                node.removeAttribute('required');
+                node.remove();
+              }
+            }
+            // 检查子元素
+            if (node.querySelectorAll) {
+              const hiddenSelects = node.querySelectorAll('select[name="contact[product_id]"], select.product-select-hidden, select#UploadModalForm-product');
+              hiddenSelects.forEach(select => {
+                const style = window.getComputedStyle(select);
+                if (style.display === 'none' || select.offsetParent === null) {
+                  select.removeAttribute('required');
+                  select.remove();
+                }
+              });
+            }
+          }
+        });
+      });
+    });
+    
+    // 开始观察整个文档的变化
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGallery);
+  } else {
+    initGallery();
+  }
+  
+  // 定期检查并清理隐藏的 select 元素（防止动态创建）
+  setInterval(removeHiddenSelects, 500);
+</script>
+
+{% schema %}
+{
+  "name": "Shoppable Gallery",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop the Look"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pending",
+      "label": "Show Pending Items",
+      "default": false,
+      "info": "If enabled, items marked as pending will also be displayed (useful for review)"
+    },
+    {
+      "type": "header",
+      "content": "Upload Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_upload_button",
+      "label": "Show Upload Button",
+      "default": true,
+      "info": "Display a button for customers to upload their photos"
+    },
+    {
+      "type": "text",
+      "id": "upload_button_text",
+      "label": "Button Text",
+      "default": "Share Your Style"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "gallery_item",
+      "name": "Gallery Item",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "checkbox",
+          "id": "approved",
+          "label": "Approved",
+          "default": true,
+          "info": "Uncheck to mark as pending review. Pending items will only show if 'Show Pending Items' is enabled in section settings."
+        },
+        {
+          "type": "text",
+          "id": "customer_name",
+          "label": "Customer Name (Optional)",
+          "info": "Name of the customer who submitted this item"
+        },
+        {
+          "type": "text",
+          "id": "submitted_date",
+          "label": "Submitted Date (Optional)",
+          "info": "Date when this item was submitted"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Shoppable Gallery",
+      "category": "Image",
+      "blocks": [
+        {
+          "type": "gallery_item"
+        },
+        {
+          "type": "gallery_item"
+        },
+        {
+          "type": "gallery_item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

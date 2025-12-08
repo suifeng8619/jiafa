@@ -1,0 +1,259 @@
+{{ 'section-user-gallery-upload.css' | asset_url | stylesheet_tag }}
+
+<div class="user-gallery-upload page-width">
+  <div class="user-gallery-upload__container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="user-gallery-upload__title">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+    
+    {%- if section.settings.description != blank -%}
+      <p class="user-gallery-upload__description">{{ section.settings.description }}</p>
+    {%- endif -%}
+
+    <div class="user-gallery-upload__form-wrapper">
+      {%- form 'contact', id: 'UserGalleryUploadForm', class: 'user-gallery-upload__form' -%}
+        <input type="hidden" name="contact[subject]" value="Gallery Upload Request">
+        <input type="hidden" name="contact[tags]" value="gallery_upload">
+        
+        {%- if form.posted_successfully? -%}
+          <div class="user-gallery-upload__message user-gallery-upload__message--success">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <p>{{ section.settings.success_message | default: 'Thank you! Your submission has been received and is pending review.' }}</p>
+          </div>
+        {%- elsif form.errors -%}
+          <div class="user-gallery-upload__message user-gallery-upload__message--error">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>{{ 'templates.contact.form.error_heading' | t }}</p>
+          </div>
+        {%- endif -%}
+
+        <div class="user-gallery-upload__fields">
+          <div class="field">
+            <label class="field__label" for="UploadForm-name">
+              {{ 'templates.contact.form.name' | t }} <span class="required">*</span>
+            </label>
+            <input 
+              class="field__input" 
+              type="text" 
+              id="UploadForm-name" 
+              name="contact[name]"
+              value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+              required
+              autocomplete="name"
+            >
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="UploadForm-email">
+              {{ 'templates.contact.form.email' | t }} <span class="required">*</span>
+            </label>
+            <input 
+              class="field__input" 
+              type="email" 
+              id="UploadForm-email" 
+              name="contact[email]"
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+              required
+              autocomplete="email"
+            >
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="UploadForm-product">
+              Product <span class="required">*</span>
+            </label>
+            <input 
+              type="text" 
+              class="field__input" 
+              id="UploadForm-product" 
+              name="contact[product_title]"
+              placeholder="Enter product name..."
+              required
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="field field--file">
+            <label class="field__label" for="UploadForm-image">
+              Upload Image <span class="required">*</span>
+            </label>
+            <div class="file-upload-wrapper">
+              <input 
+                type="file" 
+                id="UploadForm-image" 
+                name="image"
+                accept="image/*"
+                required
+                class="file-upload-input"
+              >
+              <label for="UploadForm-image" class="file-upload-label">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span class="file-upload-text">Choose an image</span>
+                <span class="file-upload-filename"></span>
+              </label>
+              <div class="file-preview" id="image-preview"></div>
+            </div>
+            <input type="hidden" id="UploadForm-image-data" name="contact[image_data]">
+            <p class="field__help">Maximum file size: 5MB. Supported formats: JPG, PNG, GIF</p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="UploadForm-message">
+              Message (Optional)
+            </label>
+            <textarea 
+              class="field__input text-area" 
+              id="UploadForm-message" 
+              name="contact[body]"
+              rows="4"
+              placeholder="Tell us about your photo..."
+            >{{ form.body }}</textarea>
+          </div>
+        </div>
+
+        <div class="user-gallery-upload__submit">
+          <button type="submit" class="button button--primary" id="submit-btn">
+            {{ section.settings.submit_button_text | default: 'Submit for Review' }}
+          </button>
+        </div>
+      {%- endform -%}
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const form = document.getElementById('UserGalleryUploadForm');
+  const fileInput = document.getElementById('UploadForm-image');
+  const imagePreview = document.getElementById('image-preview');
+  const imageDataInput = document.getElementById('UploadForm-image-data');
+  const productInput = document.getElementById('UploadForm-product');
+  const submitBtn = document.getElementById('submit-btn');
+  const fileUploadText = document.querySelector('.file-upload-text');
+  const fileUploadFilename = document.querySelector('.file-upload-filename');
+
+  // Handle file upload
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      this.value = '';
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.match('image.*')) {
+      alert('Please select an image file');
+      this.value = '';
+      return;
+    }
+
+    // Update filename display
+    fileUploadText.textContent = 'Change image';
+    fileUploadFilename.textContent = file.name;
+
+    // Preview image
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+      // Store base64 data for form submission
+      imageDataInput.value = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Handle form submission
+  form.addEventListener('submit', function(e) {
+    if (!imageDataInput.value) {
+      e.preventDefault();
+      alert('Please upload an image');
+      return false;
+    }
+
+    if (!productInput || !productInput.value.trim()) {
+      e.preventDefault();
+      alert('Please enter a product name');
+      productInput.focus();
+      return false;
+    }
+
+    // Add image data to form body
+    const messageField = document.getElementById('UploadForm-message');
+    const userMessage = messageField ? (messageField.value || '').trim() : '';
+    
+    let fullMessage = userMessage;
+    if (fullMessage) {
+      fullMessage += '\n\n';
+    }
+    fullMessage += '--- Gallery Upload Information ---\n';
+    fullMessage += `Product: ${productInput.value}\n`;
+    if (fileInput && fileInput.files[0]) {
+      fullMessage += `Image File Name: ${fileInput.files[0].name}\n`;
+      fullMessage += `Image Size: ${(fileInput.files[0].size / 1024).toFixed(2)} KB\n`;
+    }
+    fullMessage += `Image Data (Base64): ${imageDataInput.value}`;
+    
+    if (messageField) {
+      messageField.value = fullMessage;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "User Gallery Upload",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Share Your Style"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Upload your photos featuring our products and share your style with the community!"
+    },
+    {
+      "type": "text",
+      "id": "submit_button_text",
+      "label": "Submit Button Text",
+      "default": "Submit for Review"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Success Message",
+      "default": "Thank you! Your submission has been received and is pending review."
+    }
+  ],
+  "presets": [
+    {
+      "name": "User Gallery Upload",
+      "category": "Forms"
+    }
+  ]
+}
+{% endschema %}
+

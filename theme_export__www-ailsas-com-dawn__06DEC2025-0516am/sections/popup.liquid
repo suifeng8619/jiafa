@@ -1,0 +1,198 @@
+{% comment %}
+  popup.liquid - 这是一个自定义弹窗的section
+{% endcomment %}
+
+<div class="custom-popup" id="custom-popup" style="display: none;">
+  <div class="custom-popup-content">
+    <!-- 右上角关闭按钮（X图标） -->
+    <button id="close-popup" class="close-button" aria-label="关闭弹窗">
+      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 30 30">
+        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+      </svg>
+    </button>
+    
+    <!-- 图片部分 -->
+    <img src="https://cdn.shopify.com/s/files/1/0661/1933/6190/files/homepage-coupon-5.png?v=1751017193" 
+         class="coupon-image"
+         alt="专属折扣">
+    
+    <h2 class="popup-title">{{ section.settings.popup_title }}</h2>
+    <p class="popup-description">You have accessed via the QR code and have received an exclusive discount!</p>
+    
+    <!-- 优惠码区域 -->
+    <div class="coupon-code-area">
+      <p class="code-label">Code：</p>
+      <div id="discount-code" class="discount-code">{{ section.settings.coupon_code | default: 'STORE5' }}</div>
+      <button id="copy-code" class="copy-button">Copy Code</button>
+      <span id="copy-success" class="copy-success">Copied！</span>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Home pop-up",
+  "settings": [
+    {
+      "type": "text",
+      "id": "popup_title",
+      "label": "popup_title",
+      "default": "Exclusive offers"
+    },
+    {
+      "type": "text",
+      "id": "coupon_code",
+      "label": "Code",
+      "default": "STORE5"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Home pop-up",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 检查URL参数
+  const urlParams = new URLSearchParams(window.location.search);
+  const showPopup = urlParams.get('code') === 'true';
+  
+  if (showPopup && window.location.pathname === '/') {
+    const popup = document.getElementById('custom-popup');
+    if (popup) {
+      popup.style.display = 'flex';
+      
+      // 关闭按钮事件
+      document.getElementById('close-popup').addEventListener('click', function() {
+        popup.style.display = 'none';
+      });
+      
+      // 复制优惠码功能
+      const copyButton = document.getElementById('copy-code');
+      copyButton.addEventListener('click', function() {
+        const couponCode = document.getElementById('discount-code').textContent;
+        navigator.clipboard.writeText(couponCode).then(function() {
+          // 显示复制成功消息
+          const successMsg = document.getElementById('copy-success');
+          successMsg.style.display = 'block';
+          
+          // 2秒后隐藏
+          setTimeout(function() {
+            successMsg.style.display = 'none';
+          }, 2000);
+        }).catch(function(err) {
+          console.error('Copy Failure:', err);
+          copyButton.textContent = 'Copy Failure';
+        });
+      });
+      
+      // 点击优惠码也可以复制
+      document.getElementById('discount-code').addEventListener('click', function() {
+        document.getElementById('copy-code').click();
+      });
+    }
+  }
+});
+</script>
+
+<style>
+.custom-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-family: 'Arial', sans-serif;
+}
+.custom-popup-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
+}
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #888;
+  padding: 5px;
+}
+.close-button:hover {
+  color: #555;
+}
+.coupon-image {
+  max-width: 100%;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+.popup-title {
+  color: #d82a2a;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+.popup-description {
+  margin-bottom: 20px;
+  color: #555;
+}
+.coupon-code-area {
+  background: #f8f8f8;
+  padding: 15px;
+  border-radius: 5px;
+  margin: 20px 0;
+  position: relative;
+}
+.code-label {
+  margin: 0 0 10px 0;
+  font-weight: bold;
+  color: #333;
+}
+.discount-code {
+  font-size: 24px;
+  letter-spacing: 2px;
+  background: white;
+  padding: 10px;
+  border: 1px dashed #d82a2a;
+  border-radius: 4px;
+  display: inline-block;
+  cursor: pointer;
+  margin-bottom: 15px;
+  color: #d82a2a;
+  font-weight: bold;
+}
+.copy-button {
+  display: block;
+  margin: 15px auto 0;
+  padding: 8px 20px;
+  background: #d82a2a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.copy-button:hover {
+  background: #b82222;
+}
+.copy-success {
+  display: none;
+  color: green;
+  font-size: 14px;
+  margin-top: 5px;
+}
+</style>

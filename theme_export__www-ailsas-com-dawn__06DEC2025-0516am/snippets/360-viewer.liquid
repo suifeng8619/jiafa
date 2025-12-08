@@ -1,0 +1,74 @@
+{%- assign files_mf = product.metafields.custom['360_images'] -%}
+{%- assign product__images_str = '' -%}
+{%- assign count = 0 -%}
+
+{%- if files_mf -%}
+  {%- assign urls = files_mf.value -%}
+  {%- for item in urls -%}
+    {%- assign url = item.url | default: item -%}
+    {%- assign clean_url = url
+      | remove: "'"
+      | remove: '"'
+      | strip
+      | replace: '\/', '/'
+    -%}
+    {%- unless clean_url contains '://' -%}
+      {%- if clean_url contains 'cdn/shop/files' -%}
+        {%- assign clean_url = 'https://www.ailsas.com' | append: clean_url -%}
+      {%- elsif clean_url contains 'files/' -%}
+        {%- assign clean_url = 'https://www.ailsas.com/cdn/shop/' | append: clean_url -%}
+      {%- endif -%}
+    {%- endunless -%}
+
+    {%- if clean_url != blank and clean_url contains 'https://' -%}
+      {%- if product__images_str == '' -%}
+        {%- assign product__images_str = clean_url -%}
+      {%- else -%}
+        {%- assign product__images_str = product__images_str | append: ',' | append: clean_url -%}
+      {%- endif -%}
+      {%- assign count = count | plus: 1 -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- assign product__images = product__images_str | split: ',' -%}
+
+{%- comment -%} 如果没有找到360度图片，使用产品的所有图片作为备选 {%- endcomment -%}
+{%- if product__images.size == 0 -%}
+  {%- assign product__images_array = '' -%}
+  {%- for image in product.images -%}
+    {%- if product__images_array == '' -%}
+      {%- assign product__images_array = image | img_url: 'master' -%}
+    {%- else -%}
+      {%- assign product__images_array = product__images_array | append: ',' | append: image | img_url: 'master' -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- assign product__images = product__images_array | split: ',' -%}
+{%- endif -%}
+
+{%- if product__images.size > 0 -%}
+{%- comment -%} 将图片数组转换为JSON格式 {%- endcomment -%}
+{%- assign images_json = '' -%}
+{%- for image in product__images -%}
+  {%- if forloop.first -%}
+    {%- assign images_json = '"' | append: image | append: '"' -%}
+  {%- else -%}
+    {%- assign images_json = images_json | append: ',"' | append: image | append: '"' -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- assign images_json = '[' | append: images_json | append: ']' -%}
+
+{%- comment -%} 添加预加载链接以提前加载关键图片 {%- endcomment -%}
+{%- for image in product__images limit: 5 -%}
+  <link rel="preload" href="{{ image }}" as="image">
+{%- endfor -%}
+
+<div class="viewer360-container" 
+     data-images='{{ images_json }}'">
+  <div id="viewer360">
+    <img id="viewer360-img" src="{{ product__images[0] }}" alt="360° View">
+    <div class="viewer360-loading" id="viewer360-loading" style="display: block;">Loading...</div>
+    <div class="viewer360-progress" id="viewer360-progress"></div>
+  </div>
+</div>
+{%- endif -%}

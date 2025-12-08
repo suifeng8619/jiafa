@@ -1,0 +1,306 @@
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .tabs-{{ section.id }}__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+    margin-bottom: 1rem;
+  }
+  .tabs-{{ section.id }}__tab {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    opacity: .7;
+  }
+  .tabs-{{ section.id }}__tab[aria-selected="true"] {
+    opacity: 1;
+    background: rgba(0,0,0,.06);
+  }
+  .tabs-{{ section.id }}__panel[hidden] {
+    display: none;
+  }
+{%- endstyle -%}
+
+{%- assign wrapper_class = section.settings.full_width | default: false -%}
+<div class="color-{{ section.settings.color_scheme }} isolate gradient">
+  <div class="{% unless section.settings.full_width %}page-width{% endunless %} section-{{ section.id }}-padding">
+    {%- if section.settings.section_title != blank -%}
+      <h2 class="title inline-richtext {{ section.settings.heading_size }}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+        {{ section.settings.section_title }}
+      </h2>
+    {%- endif -%}
+
+    <div id="Tabs-{{ section.id }}" class="tabs-{{ section.id }}">
+      {%- if section.blocks.size > 0 -%}
+        <div class="tabs-{{ section.id }}__nav" role="tablist" aria-label="{{ section.settings.section_title | default: 'Tabs' }}">
+          {%- for block in section.blocks -%}
+            {%- assign is_active = forloop.first -%}
+            <button
+              class="tabs-{{ section.id }}__tab{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+              id="Tab-{{ block.id }}"
+              role="tab"
+              type="button"
+              aria-selected="{{ is_active }}"
+              aria-controls="TabPanel-{{ block.id }}"
+              tabindex="{% if is_active %}0{% else %}-1{% endif %}"
+              {{ block.shopify_attributes }}
+              {% if settings.animations_reveal_on_scroll %} data-cascade style="--animation-order: {{ forloop.index }};"{% endif %}
+            >
+              {{ block.settings.tab_title }}
+            </button>
+          {%- endfor -%}
+        </div>
+
+        {%- for block in section.blocks -%}
+          {%- assign is_active = forloop.first -%}
+          {%- liquid
+            assign columns_desktop = block.settings.columns_desktop | default: 4
+            assign columns_mobile = block.settings.columns_mobile | default: '2'
+            assign grid_mobile = 'grid--' | append: columns_mobile | append: '-col-tablet-down'
+            assign grid_desktop = 'grid--' | append: columns_desktop | append: '-col-desktop'
+          -%}
+          <div
+            id="TabPanel-{{ block.id }}"
+            class="tabs-{{ section.id }}__panel{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+            role="tabpanel"
+            aria-labelledby="Tab-{{ block.id }}"
+            tabindex="0"
+            {% unless is_active %}hidden{% endunless %}
+          >
+            <ul
+              class="grid product-grid contains-card contains-card--product{% if settings.card_style == 'standard' %} contains-card--standard{% endif %} {{ grid_desktop }} {{ grid_mobile }}"
+              role="list"
+            >
+              {% assign skip_card_product_styles = false %}
+              {%- if block.settings.collection != blank -%}
+                {%- for product in block.settings.collection.products limit: block.settings.products_to_show -%}
+                  <li class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}" {% if settings.animations_reveal_on_scroll %} data-cascade style="--animation-order: {{ forloop.index }};"{% endif %}>
+                    {% render 'card-product',
+                      card_product: product,
+                      media_aspect_ratio: section.settings.image_ratio,
+                      image_shape: section.settings.image_shape,
+                      show_secondary_image: section.settings.show_secondary_image,
+                      show_vendor: section.settings.show_vendor,
+                      show_rating: section.settings.show_rating,
+                      skip_styles: skip_card_product_styles,
+                      section_id: section.id,
+                      quick_add: 'none'
+                    %}
+                  </li>
+                  {%- assign skip_card_product_styles = true -%}
+                {%- else -%}
+                  {%- for i in (1..columns_desktop) -%}
+                    <li class="grid__item">
+                      {% liquid
+                        assign ridx = forloop.rindex
+                        case ridx
+                          when 5
+                            assign ridx = 1
+                          when 6
+                            assign ridx = 2
+                        endcase
+                      %}
+                      {%- assign placeholder_image = 'product-apparel-' | append: ridx -%}
+                      {% render 'card-product',
+                        show_vendor: section.settings.show_vendor,
+                        media_aspect_ratio: section.settings.image_ratio,
+                        image_shape: section.settings.image_shape,
+                        placeholder_image: placeholder_image
+                      %}
+                    </li>
+                  {%- endfor -%}
+                {%- endfor -%}
+              {%- else -%}
+                {%- for i in (1..columns_desktop) -%}
+                  <li class="grid__item">
+                    {% liquid
+                      assign ridx = forloop.rindex
+                      case ridx
+                        when 5
+                          assign ridx = 1
+                        when 6
+                          assign ridx = 2
+                      endcase
+                    %}
+                    {%- assign placeholder_image = 'product-apparel-' | append: ridx -%}
+                    {% render 'card-product',
+                      show_vendor: section.settings.show_vendor,
+                      media_aspect_ratio: section.settings.image_ratio,
+                      image_shape: section.settings.image_shape,
+                      placeholder_image: placeholder_image
+                    %}
+                  </li>
+                {%- endfor -%}
+              {%- endif -%}
+            </ul>
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        <p>请在主题编辑器中为此模块添加“选项卡”并配置集合。</p>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const root = document.getElementById('Tabs-{{ section.id }}');
+    if (!root) return;
+    const tabs = Array.from(root.querySelectorAll('[role="tab"]'));
+    const panels = Array.from(root.querySelectorAll('[role="tabpanel"]'));
+
+    function activate(next) {
+      tabs.forEach((t, i) => {
+        const selected = t === next;
+        t.setAttribute('aria-selected', selected ? 'true' : 'false');
+        t.tabIndex = selected ? 0 : -1;
+        const panel = root.querySelector('#' + t.getAttribute('aria-controls'));
+        if (panel) {
+          if (selected) {
+            panel.removeAttribute('hidden');
+          } else {
+            panel.setAttribute('hidden', '');
+          }
+        }
+      });
+      next.focus({ preventScroll: true });
+    }
+
+    tabs.forEach((tab, idx) => {
+      tab.addEventListener('click', () => activate(tab));
+      tab.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const dir = e.key === 'ArrowRight' ? 1 : -1;
+          const nextIndex = (idx + dir + tabs.length) % tabs.length;
+          activate(tabs[nextIndex]);
+        }
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "选项卡商品",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": { "groups": ["header", "footer"] },
+  "settings": [
+    { "type": "inline_richtext", "id": "section_title", "label": "模块标题", "default": "精选商品" },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "标题大小",
+      "default": "h2",
+      "options": [
+        { "value": "h2", "label": "H2" },
+        { "value": "h1", "label": "H1" },
+        { "value": "h0", "label": "H0" },
+        { "value": "hxl", "label": "HXL" },
+        { "value": "hxxl", "label": "HXXL" }
+      ]
+    },
+    { "type": "color_scheme", "id": "color_scheme", "label": "配色方案", "default": "scheme-1" },
+    { "type": "checkbox", "id": "full_width", "label": "全宽显示", "default": false },
+
+    { "type": "header", "content": "产品卡片显示" },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "图片比例",
+      "default": "adapt",
+      "options": [
+        { "value": "adapt", "label": "自适应" },
+        { "value": "portrait", "label": "竖图" },
+        { "value": "square", "label": "方形" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "image_shape",
+      "label": "图片外形",
+      "default": "default",
+      "options": [
+        { "value": "default", "label": "默认" },
+        { "value": "arch", "label": "拱形" },
+        { "value": "blob", "label": "不规则" },
+        { "value": "chevronleft", "label": "左斜纹" },
+        { "value": "chevronright", "label": "右斜纹" },
+        { "value": "diamond", "label": "菱形" },
+        { "value": "parallelogram", "label": "平行四边形" },
+        { "value": "round", "label": "圆形" }
+      ]
+    },
+    { "type": "checkbox", "id": "show_secondary_image", "label": "悬停显示第二张图", "default": false },
+    { "type": "checkbox", "id": "show_vendor", "label": "显示品牌", "default": false },
+    { "type": "checkbox", "id": "show_rating", "label": "显示评分", "default": false },
+
+    { "type": "header", "content": "模块内边距" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "上边距", "default": 36 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "下边距", "default": 36 }
+  ],
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "选项卡",
+      "settings": [
+        { "type": "text", "id": "tab_title", "label": "选项卡标题", "default": "标签一" },
+        { "type": "collection", "id": "collection", "label": "选择集合" },
+        {
+          "type": "range",
+          "id": "products_to_show",
+          "min": 2, "max": 25, "step": 1,
+          "label": "显示产品数量", "default": 8
+        },
+        {
+          "type": "range",
+          "id": "columns_desktop",
+          "min": 1, "max": 6, "step": 1,
+          "label": "桌面端列数", "default": 4
+        },
+        {
+          "type": "select",
+          "id": "columns_mobile",
+          "label": "移动端列数",
+          "default": "2",
+          "options": [
+            { "value": "1", "label": "1列" },
+            { "value": "2", "label": "2列" }
+          ]
+        }
+      ]
+    }
+  ],
+  "max_blocks": 10,
+  "presets": [
+    {
+      "name": "选项卡商品",
+      "blocks": [
+        { "type": "tab", "settings": { "tab_title": "", "products_to_show": 8, "columns_desktop": 4, "columns_mobile": "2" } },
+        { "type": "tab", "settings": { "tab_title": "", "products_to_show": 8, "columns_desktop": 4, "columns_mobile": "2" } },
+        { "type": "tab", "settings": { "tab_title": "", "products_to_show": 8, "columns_desktop": 4, "columns_mobile": "2" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

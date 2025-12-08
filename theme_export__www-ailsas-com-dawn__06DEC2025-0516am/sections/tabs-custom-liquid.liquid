@@ -1,0 +1,270 @@
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .tabs-{{ section.id }}__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+    margin-bottom: 2rem;
+  }
+  .tabs-{{ section.id }}__tab {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    opacity: .7;
+    transition: opacity 0.2s ease, background 0.2s ease;
+  }
+  .tabs-{{ section.id }}__tab:hover {
+    opacity: 0.85;
+  }
+  .tabs-{{ section.id }}__tab[aria-selected="true"] {
+    opacity: 1;
+    background: rgba(0,0,0,.06);
+  }
+  .tabs-{{ section.id }}__panel[hidden] {
+    display: none;
+  }
+{%- endstyle -%}
+
+<div class="tabs-custom-liquid section-{{ section.id }}-padding gradient color-{{ section.settings.section_color_scheme }}">
+  <div class="tabs-custom-liquid__inner page-width">
+    {%- if section.settings.section_title != blank -%}
+      <h2 class="title inline-richtext {{ section.settings.heading_size }}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+        {{ section.settings.section_title }}
+      </h2>
+    {%- endif -%}
+
+    <div id="Tabs-{{ section.id }}" class="tabs-{{ section.id }}">
+      {%- assign tab_blocks = section.blocks | where: 'type', 'tab' -%}
+      {%- if tab_blocks.size > 0 -%}
+        <div class="tabs-{{ section.id }}__nav" role="tablist" aria-label="{{ section.settings.section_title | default: 'Tabs' }}">
+          {%- for tab_block in tab_blocks -%}
+            {%- assign is_active = forloop.first -%}
+            {%- if tab_block.settings.tab_title != blank -%}
+              {%- assign tab_title = tab_block.settings.tab_title -%}
+            {%- else -%}
+              {%- assign tab_title = '选项卡 ' | append: forloop.index -%}
+            {%- endif -%}
+            <button
+              class="tabs-{{ section.id }}__tab{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+              id="Tab-{{ tab_block.id }}"
+              role="tab"
+              type="button"
+              aria-selected="{{ is_active }}"
+              aria-controls="TabPanel-{{ tab_block.id }}"
+              tabindex="{% if is_active %}0{% else %}-1{% endif %}"
+              {{ tab_block.shopify_attributes }}
+              {% if settings.animations_reveal_on_scroll %} data-cascade style="--animation-order: {{ forloop.index }};"{% endif %}
+            >
+              {{ tab_title }}
+            </button>
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} 渲染每个选项卡面板 {%- endcomment -%}
+        {%- for tab_block in tab_blocks -%}
+          {%- assign is_active = forloop.first -%}
+          <div
+            id="TabPanel-{{ tab_block.id }}"
+            class="tabs-{{ section.id }}__panel{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+            role="tabpanel"
+            aria-labelledby="Tab-{{ tab_block.id }}"
+            tabindex="0"
+            {% unless is_active %}hidden{% endunless %}
+            {{ tab_block.shopify_attributes }}
+          >
+            {%- if tab_block.settings.custom_liquid != blank -%}
+              <div class="tabs-{{ section.id }}__panel-content">
+                {{ tab_block.settings.custom_liquid }}
+              </div>
+            {%- else -%}
+              <p>请在主题编辑器中为此选项卡添加自定义Liquid内容。</p>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        <p>请在主题编辑器中为此模块添加"选项卡"块。每个选项卡块将自动创建一个选项卡。</p>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const root = document.getElementById('Tabs-{{ section.id }}');
+    if (!root) return;
+    const tabs = Array.from(root.querySelectorAll('[role="tab"]'));
+    const panels = Array.from(root.querySelectorAll('[role="tabpanel"]'));
+
+    function activate(next) {
+      tabs.forEach((t, i) => {
+        const selected = t === next;
+        t.setAttribute('aria-selected', selected ? 'true' : 'false');
+        t.tabIndex = selected ? 0 : -1;
+        const panel = root.querySelector('#' + t.getAttribute('aria-controls'));
+        if (panel) {
+          if (selected) {
+            panel.removeAttribute('hidden');
+          } else {
+            panel.setAttribute('hidden', '');
+          }
+        }
+      });
+      next.focus({ preventScroll: true });
+    }
+
+    tabs.forEach((tab, idx) => {
+      tab.addEventListener('click', () => activate(tab));
+      tab.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const dir = e.key === 'ArrowRight' ? 1 : -1;
+          const nextIndex = (idx + dir + tabs.length) % tabs.length;
+          activate(tabs[nextIndex]);
+        }
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "选项卡自定义Liquid",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "section_title",
+      "label": "模块标题",
+      "default": "选项卡内容"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "H2"
+        },
+        {
+          "value": "h1",
+          "label": "H1"
+        },
+        {
+          "value": "h0",
+          "label": "H0"
+        },
+        {
+          "value": "hxl",
+          "label": "HXL"
+        },
+        {
+          "value": "hxxl",
+          "label": "HXXL"
+        }
+      ],
+      "default": "h1",
+      "label": "标题大小"
+    },
+    {
+      "type": "color_scheme",
+      "id": "section_color_scheme",
+      "label": "模块配色方案",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "模块内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "选项卡",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_title",
+          "label": "选项卡标题",
+          "default": "选项卡"
+        },
+        {
+          "type": "liquid",
+          "id": "custom_liquid",
+          "label": "自定义Liquid内容",
+          "info": "在此处添加自定义Liquid代码。您可以在这里使用任何Liquid语法和Shopify对象。"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "选项卡自定义Liquid",
+      "blocks": [
+        {
+          "type": "tab",
+          "settings": {
+            "tab_title": "第一个选项卡",
+            "custom_liquid": "<p>这是第一个选项卡的自定义Liquid内容。</p>"
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
+            "tab_title": "第二个选项卡",
+            "custom_liquid": "<p>这是第二个选项卡的自定义Liquid内容。</p>"
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
+            "tab_title": "第三个选项卡",
+            "custom_liquid": "<p>这是第三个选项卡的自定义Liquid内容。</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+

@@ -1,0 +1,14 @@
+{%- comment -%}
+  Pagination SEO Tags
+  为分页页面添加 rel="next" 和 rel="prev" 标签
+  帮助搜索引擎理解分页关系，避免重复内容问题
+{%- endcomment -%}
+
+{%- if paginate -%}
+  {%- if paginate.previous -%}
+    <link rel="prev" href="{{ paginate.previous.url }}">
+  {%- endif -%}
+  {%- if paginate.next -%}
+    <link rel="next" href="{{ paginate.next.url }}">
+  {%- endif -%}
+{%- endif -%}

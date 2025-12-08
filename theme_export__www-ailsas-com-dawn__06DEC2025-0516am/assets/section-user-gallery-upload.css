@@ -1,0 +1,240 @@
+/* User Gallery Upload Form Styles */
+.user-gallery-upload {
+  padding: 4rem 1.5rem;
+}
+
+.user-gallery-upload__container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.user-gallery-upload__title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 1rem 0;
+  color: rgb(var(--color-foreground));
+}
+
+.user-gallery-upload__description {
+  text-align: center;
+  font-size: 1.125rem;
+  color: rgba(var(--color-foreground), 0.7);
+  margin: 0 0 3rem 0;
+  line-height: 1.6;
+}
+
+.user-gallery-upload__form-wrapper {
+  background: rgb(var(--color-background));
+  border: 1px solid rgba(var(--color-foreground), 0.1);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.user-gallery-upload__form {
+  width: 100%;
+}
+
+.user-gallery-upload__message {
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-gallery-upload__message--success {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(22, 163, 74);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.user-gallery-upload__message--error {
+  background: rgba(239, 68, 68, 0.1);
+  color: rgb(220, 38, 38);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.user-gallery-upload__message svg {
+  flex-shrink: 0;
+}
+
+.user-gallery-upload__message p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.user-gallery-upload__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.user-gallery-upload__fields .field {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-gallery-upload__fields .field__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: rgb(var(--color-foreground));
+}
+
+.user-gallery-upload__fields .field__label .required {
+  color: rgb(239, 68, 68);
+}
+
+.user-gallery-upload__fields .field__input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(var(--color-foreground), 0.2);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: rgb(var(--color-background));
+  color: rgb(var(--color-foreground));
+  transition: border-color 0.3s ease;
+}
+
+.user-gallery-upload__fields .field__input:focus {
+  outline: none;
+  border-color: rgb(var(--color-button));
+  box-shadow: 0 0 0 3px rgba(var(--color-button), 0.1);
+}
+
+.user-gallery-upload__fields .text-area {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.user-gallery-upload__fields .field__help {
+  font-size: 0.875rem;
+  color: rgba(var(--color-foreground), 0.6);
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+/* File Upload Styles */
+.field--file {
+  position: relative;
+}
+
+.file-upload-wrapper {
+  position: relative;
+}
+
+.file-upload-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border: 2px dashed rgba(var(--color-foreground), 0.3);
+  border-radius: 0.5rem;
+  background: rgba(var(--color-foreground), 0.02);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 150px;
+}
+
+.file-upload-label:hover {
+  border-color: rgb(var(--color-button));
+  background: rgba(var(--color-button), 0.05);
+}
+
+.file-upload-label svg {
+  margin-bottom: 0.75rem;
+  color: rgba(var(--color-foreground), 0.6);
+  transition: color 0.3s ease;
+}
+
+.file-upload-label:hover svg {
+  color: rgb(var(--color-button));
+}
+
+.file-upload-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(var(--color-foreground));
+  margin-bottom: 0.5rem;
+}
+
+.file-upload-filename {
+  font-size: 0.875rem;
+  color: rgba(var(--color-foreground), 0.6);
+  margin-top: 0.5rem;
+  word-break: break-all;
+  text-align: center;
+}
+
+.file-preview {
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  max-height: 300px;
+  display: none;
+}
+
+.file-preview:has(img) {
+  display: block;
+}
+
+.file-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.user-gallery-upload__submit {
+  text-align: center;
+}
+
+.user-gallery-upload__submit .button {
+  min-width: 200px;
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.user-gallery-upload__submit .button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media screen and (max-width: 749px) {
+  .user-gallery-upload {
+    padding: 2rem 1rem;
+  }
+
+  .user-gallery-upload__title {
+    font-size: 2rem;
+  }
+
+  .user-gallery-upload__description {
+    font-size: 1rem;
+  }
+
+  .user-gallery-upload__form-wrapper {
+    padding: 1.5rem;
+  }
+
+  .user-gallery-upload__submit .button {
+    width: 100%;
+  }
+}
+

@@ -1,0 +1,399 @@
+{{ 'section-contact-form.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  .contact-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    width: 100%;
+  }
+
+  .contact-form-wrapper {
+    flex: 0 0 calc(55% - 20px);
+    min-width: 300px;
+  }
+
+  .contact-sidebar {
+    flex: 0 0 calc(45% - 20px);
+    background: {{ section.settings.sidebar_bg_color }};
+    padding: 30px;
+    border-radius: 8px;
+  }
+
+  .contact-sidebar h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .contact-sidebar p {
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .live-help-btn {
+    display: inline-block;
+    background: {{ section.settings.button_bg_color }};
+    color: {{ section.settings.button_text_color }};
+    padding: 12px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .live-help-btn:hover {
+    opacity: 0.9;
+  }
+
+  .contact-info {
+    margin-top: 30px;
+  }
+
+  .contact-info p {
+    margin: 5px 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    .contact-form-wrapper,
+    .contact-sidebar {
+      flex: 1 1 100%;
+    }
+    
+    .contact-container {
+      flex-direction: column;
+    }
+    
+    .contact-sidebar {
+      margin-top: 30px;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+
+    {% if section.settings.layout == 'form_right' %}
+      .contact-container {
+        flex-direction: row-reverse;
+      }
+    {% endif %}
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="contact page-width section-{{ section.id }}-padding">
+    <div class="contact-container">
+      <div class="contact-form-wrapper">
+        <h2 class="title title-wrapper--no-top-margin inline-richtext {{ section.settings.heading_size }}">
+          {{ section.settings.form_title | default: 'CONTACT US' }}
+        </h2>
+        <p>{{ section.settings.form_description }}</p>
+
+        {%- form 'contact', id: 'ContactForm', class: 'isolate' -%}
+          <!-- 关键修改：添加隐藏字段指定接收邮箱 -->
+          <input type="hidden" name="contact[email]" value="hello@ailsas.com">
+          
+          {%- if form.posted_successfully? -%}
+            <h2 class="form-status form-status-list form__message" tabindex="-1" autofocus>
+              {{ 'templates.contact.form.post_success' | t }}
+            </h2>
+          {%- elsif form.errors -%}
+            <div class="form__message">
+              <h2 class="form-status caption-large text-body" role="alert" tabindex="-1" autofocus>
+                {{ 'templates.contact.form.error_heading' | t }}
+              </h2>
+            </div>
+          {%- endif -%}
+
+          <div class="contact__fields">
+            <div class="field">
+              <input class="field__input" autocomplete="name" type="text" id="ContactForm-name" name="contact[name]"
+                value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+                placeholder="{{ 'templates.contact.form.name' | t }}">
+              <label class="field__label" for="ContactForm-name">{{ 'templates.contact.form.name' | t }}</label>
+            </div>
+            <div class="field field--with-error">
+              <input autocomplete="email" type="email" id="ContactForm-email" class="field__input" name="contact[email]"
+                spellcheck="false" autocapitalize="off"
+                value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+                aria-required="true"
+                {% if form.errors contains 'email' %}
+                  aria-invalid="true"
+                  aria-describedby="ContactForm-email-error"
+                {% endif %}
+                placeholder="{{ 'templates.contact.form.email' | t }}">
+              <label class="field__label" for="ContactForm-email">
+                {{ 'templates.contact.form.email' | t }}<span aria-hidden="true">*</span>
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <input type="tel" id="ContactForm-phone" class="field__input" autocomplete="tel" name="contact[phone]"
+              pattern="[0-9\-]*"
+              value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}"
+              placeholder="{{ 'templates.contact.form.phone' | t }}">
+            <label class="field__label" for="ContactForm-phone">{{ 'templates.contact.form.phone' | t }}</label>
+          </div>
+          <div class="field">
+            <textarea rows="10" id="ContactForm-body" class="text-area field__input" name="contact[body]"
+              placeholder="{{ 'templates.contact.form.comment' | t }}">
+              {{- form.body -}}
+            </textarea>
+            <label class="form__label field__label" for="ContactForm-body">
+              {{ 'templates.contact.form.comment' | t }}
+            </label>
+          </div>
+          <div class="contact__button">
+            <button type="submit" class="button">
+              {{ 'templates.contact.form.send' | t }}
+            </button>
+          </div>
+        {%- endform -%}
+      </div>
+      
+      <div class="contact-sidebar">
+        <h3>{{ section.settings.sidebar_title | default: 'GET IN TOUCH' }}</h3>
+        <p>{{ section.settings.sidebar_subtitle | default: 'Send us an email' }}</p>
+        <p>{{ section.settings.sidebar_description | default: 'Ask us anything! Write here to help.' }}</p>
+        
+        <h3>{{ section.settings.live_help_title | default: 'Live Help' }}</h3>
+        <p>{{ section.settings.live_help_text }}</p>
+        <a href="{{ section.settings.live_help_button_link }}" class="live-help-btn">
+          {{ section.settings.live_help_button_text | default: 'MESSAGE US' }}
+        </a>
+        
+        <div class="contact-info">
+          {% if section.settings.contact_phone != blank %}
+            <p>{{ section.settings.contact_phone }}</p>
+          {% endif %}
+          {% if section.settings.contact_email != blank %}
+            <p>{{ section.settings.contact_email }}</p>
+          {% endif %}
+          {% if section.settings.contact_address != blank %}
+            {{ section.settings.contact_address | newline_to_br }}
+          {% endif %}
+          {% if section.settings.opening_hours != blank %}
+            {{ section.settings.opening_hours | newline_to_br }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Contact Form",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Form Settings"
+    },
+    {
+      "type": "text",
+      "id": "form_title",
+      "label": "Form Title",
+      "default": "CONTACT US"
+    },
+    {
+      "type": "textarea",
+      "id": "form_description",
+      "label": "Form Description",
+      "default": "We love to hear from you on our customer service, merchandise, website or any topics you want to share with us. Your comments and suggestions will be appreciated."
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "Small"
+        },
+        {
+          "value": "h1",
+          "label": "Medium"
+        },
+        {
+          "value": "h0",
+          "label": "Large"
+        }
+      ],
+      "default": "h1",
+      "label": "Heading Size"
+    },
+    {
+      "type": "header",
+      "content": "Sidebar Settings"
+    },
+    {
+      "type": "text",
+      "id": "sidebar_title",
+      "label": "Sidebar Title",
+      "default": "GET IN TOUCH"
+    },
+    {
+      "type": "textarea",
+      "id": "sidebar_subtitle",
+      "label": "Sidebar Subtitle",
+      "default": "Send us an email"
+    },
+    {
+      "type": "textarea",
+      "id": "sidebar_description",
+      "label": "Sidebar Description",
+      "default": "Ask us anything! Write here to help."
+    },
+    {
+      "type": "text",
+      "id": "live_help_title",
+      "label": "Live Help Title",
+      "default": "Live Help"
+    },
+    {
+      "type": "textarea",
+      "id": "live_help_text",
+      "label": "Live Help Text",
+      "default": "If you have an issue or question that requires immediate assistance, you can click the button below to chat live with a Customer Service representative. If we aren't available, drop us an email to the left and we will get back to you within 20-30 hours!"
+    },
+    {
+      "type": "text",
+      "id": "live_help_button_text",
+      "label": "Button Text",
+      "default": "MESSAGE US"
+    },
+    {
+      "type": "url",
+      "id": "live_help_button_link",
+      "label": "Button Link"
+    },
+    {
+      "type": "header",
+      "content": "Contact Information"
+    },
+    {
+      "type": "text",
+      "id": "contact_phone",
+      "label": "Phone Number",
+      "default": "TEXT: 09h-22d-ELLA"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "Email",
+      "default": "email@domain.com"
+    },
+    {
+      "type": "textarea",
+      "id": "contact_address",
+      "label": "Address",
+      "default": "GES Market Street\nSan Francisco, CA 94105,\nUnited States"
+    },
+    {
+      "type": "textarea",
+      "id": "opening_hours",
+      "label": "Opening Hours",
+      "default": "Opening Hours:\nUSQUE-SPET TEXAM - 0:00PM\nSUM: 10:00AM - 0:00PM"
+    },
+    {
+      "type": "header",
+      "content": "Style Settings"
+    },
+    {
+      "type": "color",
+      "id": "sidebar_bg_color",
+      "label": "Sidebar Background Color",
+      "default": "#f9f9f9"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Button Background Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "sidebar_width",
+      "label": "Sidebar Width",
+      "min": 200,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "default": 300
+    },
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Desktop Layout",
+      "options": [
+        {
+          "value": "form_left",
+          "label": "Form Left / Sidebar Right"
+        },
+        {
+          "value": "form_right",
+          "label": "Form Right / Sidebar Left"
+        }
+      ],
+      "default": "form_left"
+    },
+    {
+      "type": "header",
+      "content": "Section Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top Padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom Padding",
+      "default": 36
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-1"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact Form",
+      "category": "Forms"
+    }
+  ]
+}
+{% endschema %}

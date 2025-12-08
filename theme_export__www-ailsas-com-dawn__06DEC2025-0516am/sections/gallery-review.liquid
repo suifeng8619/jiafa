@@ -1,0 +1,145 @@
+{{ 'section-gallery-review.css' | asset_url | stylesheet_tag }}
+
+{%- comment -%}
+  This section is for admin review of user-submitted gallery items.
+  It should only be visible in theme editor or on a password-protected page.
+{%- endcomment -%}
+
+<div class="gallery-review page-width">
+  <div class="gallery-review__header">
+    <h2 class="gallery-review__title">Gallery Submission Review</h2>
+    <p class="gallery-review__subtitle">Review and approve user-submitted gallery items</p>
+  </div>
+
+  <div class="gallery-review__instructions">
+    <div class="gallery-review__instruction-card">
+      <h3>How to Review Submissions</h3>
+      <ol>
+        <li>Check your contact form submissions (tagged with "gallery_upload")</li>
+        <li>Review the submitted image and product information</li>
+        <li>If approved, add the item to the Shoppable Gallery section manually</li>
+        <li>Use the form below to track approved items</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="gallery-review__pending">
+    <h3 class="gallery-review__section-title">Pending Submissions</h3>
+    <div class="gallery-review__note">
+      <p><strong>Note:</strong> User submissions are sent via the contact form. Check your Shopify admin → Settings → Notifications → Contact form to view submissions.</p>
+      <p>Each submission includes:</p>
+      <ul>
+        <li>Customer name and email</li>
+        <li>Selected product ID and title</li>
+        <li>Image data (base64 encoded)</li>
+        <li>Optional message</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="gallery-review__approved">
+    <h3 class="gallery-review__section-title">Approved Items</h3>
+    <p class="gallery-review__help-text">Items listed here are already added to the Shoppable Gallery section.</p>
+    
+    {%- if section.blocks.size > 0 -%}
+      <div class="gallery-review__approved-list">
+        {%- for block in section.blocks -%}
+          <div class="gallery-review__approved-item" {{ block.shopify_attributes }}>
+            {%- if block.settings.image != blank -%}
+              <div class="gallery-review__approved-image">
+                {{
+                  block.settings.image
+                  | image_url: width: 200
+                  | image_tag:
+                    loading: 'lazy',
+                    alt: block.settings.image.alt
+                }}
+              </div>
+            {%- endif -%}
+            <div class="gallery-review__approved-info">
+              <h4>{{ block.settings.customer_name | default: 'Customer' }}</h4>
+              {%- if block.settings.product != blank -%}
+                <p><strong>Product:</strong> {{ block.settings.product.title }}</p>
+              {%- endif -%}
+              {%- if block.settings.submitted_date != blank -%}
+                <p><strong>Submitted:</strong> {{ block.settings.submitted_date }}</p>
+              {%- endif -%}
+              {%- if block.settings.customer_email != blank -%}
+                <p><strong>Email:</strong> {{ block.settings.customer_email }}</p>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p class="gallery-review__empty">No approved items yet.</p>
+    {%- endif -%}
+  </div>
+
+  <div class="gallery-review__actions">
+    <div class="gallery-review__action-card">
+      <h3>Quick Actions</h3>
+      <div class="gallery-review__action-buttons">
+        <a href="/admin/themes/{{ theme.id }}/editor?context=store&template=index&addAppBlockId=shoppable-gallery" 
+           class="button button--primary" 
+           target="_blank">
+          Edit Shoppable Gallery
+        </a>
+        <a href="/admin/settings/notifications" 
+           class="button button--secondary" 
+           target="_blank">
+          View Contact Form Submissions
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Gallery Review",
+  "tag": "section",
+  "class": "section",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "approved_item",
+      "name": "Approved Item",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Customer Image"
+        },
+        {
+          "type": "text",
+          "id": "customer_name",
+          "label": "Customer Name"
+        },
+        {
+          "type": "text",
+          "id": "customer_email",
+          "label": "Customer Email"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "text",
+          "id": "submitted_date",
+          "label": "Submitted Date"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gallery Review",
+      "category": "Admin"
+    }
+  ]
+}
+{% endschema %}
+

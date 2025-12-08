@@ -1,0 +1,141 @@
+.image__description {
+  font-size: 1.3rem;
+}
+.product__media-item > * {
+  display: block;
+  position: relative;
+}
+
+.collection-hero__description {
+  max-height: 50px;
+  overflow: hidden;
+  position: relative;
+  transition: max-height 0.3s ease-in-out;
+}
+.expand-button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+.expand-button:hover {
+  background-color: #0056b3;
+}
+.expand-button {
+  display: inline-block;
+  background-color: #007bff;
+  margin: 0;
+  position: absolute;
+  bottom: auto;
+  left: 50%;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+/* 修改按钮样式，使其占据一整行并有背景色 */
+/* 初始折叠状态 */
+.collection-hero__description.rte.collapsed-description {
+  max-height: 350px !important;
+  overflow: hidden !important;
+  transition: max-height 0.5s ease-in-out !important;
+}
+
+/* 覆盖主题原有高度限制 */
+#shopify-section-template--24611066806657__banner .rte,
+#shopify-section-template--24611066806657__banner .collection-hero__description.rte {
+  max-height: none !important;
+}
+
+/* 按钮样式 */
+.expand-button {
+  display: block !important;
+  padding: 10px 0 !important;
+  background-color: #007bff !important;
+  color: white !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  border-radius: 4px !important;
+  text-align: center !important;
+  margin-top: -10px !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.expand-button:hover {
+  background-color: #0056b3 !important;
+}
+
+/* 产品页面 */
+@media screen and (min-width: 990px) {
+  .product--medium:not(.product--no-media) .product__media-wrapper,
+  .product--small:not(.product--no-media)
+    .product__info-wrapper
+    .AirReviews-Widget.AirReviews-Blocks__LayoutCarousel {
+    max-width: 45%;
+  }
+  .product--medium:not(.product--no-media) .product__info-wrapper,
+  .product--small:not(.product--no-media) .product__media-wrapper {
+    mamax-width: 55%;
+  }
+
+}
+  .product__sku {
+  margin: 0;
+  font-size: 16px;
+}
+
+.bookeasy-appBlock {
+  background-image: url("https://cdn.shopify.com/s/files/1/0661/1933/6190/files/Book-Your-Wig-Consultation.jpg?v=1760685045");
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+}
+
+@media screen and (max-width: 768px) {
+  .card__information{    padding: 0 !important;}
+  .product__title h1 {
+    font-size: 1.6rem;
+    font-weight: bold;
+    font-stretch: ultra-condensed;
+  }
+  .product-form__input label{
+    padding: 0.6rem .6rem !important;
+    letter-spacing: 0rem !important;
+    border-radius:0rem !important;
+    margin: .6rem .4rem 0rem 0 !important;
+  }
+  .quantity{
+    min-height: calc((var(--inputs-border-width) * 2) + 3.5rem) !important;
+  }
+  product-form__quantity{
+        margin: 0 0 1rem 0 !important;
+  }
+  .product-form__submit{
+    min-height: calc(3.5rem + var(--buttons-border-width) * 2) !important;
+  }
+  .shopify-payment-button__button{
+        min-height: calc(3.5rem + var(--buttons-border-width) * 2) !important;
+        padding:0em 0em !important;
+  }
+}
+
+/* Fix: prevent map iframe overlay blocking footer links on free-wig page */
+.page-width.contact-us-container .map-container {
+  height: 450px;
+  overflow: hidden;
+}
+.page-width.contact-us-container .map-container iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

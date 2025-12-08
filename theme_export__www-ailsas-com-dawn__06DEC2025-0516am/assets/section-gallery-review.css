@@ -1,0 +1,889 @@
+/* 可购物画廊样式 */
+.shoppable-gallery {
+  padding: 4rem 1.5rem;
+}
+
+@media screen and (min-width: 750px) {
+  .shoppable-gallery {
+    padding: 4rem 5rem;
+  }
+}
+
+.shoppable-gallery__header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.shoppable-gallery__title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: rgb(var(--color-foreground));
+}
+
+.shoppable-gallery__subtitle {
+  font-size: 1.125rem;
+  font-weight: 400;
+  margin: 0;
+  color: rgba(var(--color-foreground), 0.7);
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.shoppable-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+@media screen and (min-width: 750px) and (max-width: 989px) {
+  .shoppable-gallery__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .shoppable-gallery__grid {
+    display: flex !important;
+    grid-template-columns: none !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 1rem;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    position: relative;
+  }
+  
+  .shoppable-gallery__grid::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .shoppable-gallery__grid::-webkit-scrollbar-track {
+    background: rgba(var(--color-foreground), 0.1);
+    border-radius: 3px;
+  }
+  
+  .shoppable-gallery__grid::-webkit-scrollbar-thumb {
+    background: rgba(var(--color-foreground), 0.3);
+    border-radius: 3px;
+  }
+  
+  .shoppable-gallery__grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--color-foreground), 0.5);
+  }
+}
+
+.shoppable-gallery__item {
+  position: relative;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.shoppable-gallery__item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+@media screen and (max-width: 749px) {
+  .shoppable-gallery__item {
+    flex: 0 0 100%;
+    min-width: 100%;
+    scroll-snap-align: start;
+  }
+}
+
+.shoppable-gallery__image-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.shoppable-gallery__image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.shoppable-gallery__item:hover .shoppable-gallery__image {
+  transform: scale(1.05);
+}
+
+.shoppable-gallery__hotspot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgb(var(--color-button));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0;
+  z-index: 2;
+}
+
+.shoppable-gallery__item:hover .shoppable-gallery__hotspot {
+  opacity: 1;
+}
+
+/* 移动端始终显示热点 */
+@media screen and (max-width: 989px) {
+  .shoppable-gallery__hotspot {
+    opacity: 0.8;
+  }
+  
+  .shoppable-gallery__hotspot:active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+.shoppable-gallery__hotspot:hover {
+  background: rgb(var(--color-button));
+  color: rgb(var(--color-button-text));
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.shoppable-gallery__hotspot-icon {
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* 模态框样式 */
+.shoppable-gallery__modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.shoppable-gallery__modal--active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.shoppable-gallery__modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+}
+
+.shoppable-gallery__modal-content {
+  position: relative;
+  background: rgb(var(--color-background));
+  border-radius: 1rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 450px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.shoppable-gallery__modal--active .shoppable-gallery__modal-content {
+  transform: scale(1);
+}
+
+.shoppable-gallery__modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.shoppable-gallery__modal-close:hover {
+  background: rgb(var(--color-button));
+  color: rgb(var(--color-button-text));
+}
+
+.shoppable-gallery__modal-body {
+  padding: 2.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shoppable-gallery__product-card {
+  width: 100%;
+  text-align: center;
+}
+
+.shoppable-gallery__product-image-wrapper {
+  width: 100%;
+  aspect-ratio: 1;
+  margin-bottom: 1.2rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: rgb(var(--color-background));
+  border: 1px solid rgba(var(--color-foreground), 0.1);
+}
+
+.shoppable-gallery__product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shoppable-gallery__modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 0.8rem 0;
+  color: rgb(var(--color-foreground));
+  line-height: 1.3;
+}
+
+.shoppable-gallery__modal-price {
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.shoppable-gallery__modal-price .price {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: rgb(var(--color-button));
+  line-height: 1;
+}
+
+.shoppable-gallery__modal-price .price--compare {
+  text-decoration: line-through;
+  color: rgba(var(--color-foreground), 0.6);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.shoppable-gallery__view-details {
+  display: block;
+  width: 100%;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  min-height: 50px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.shoppable-gallery__view-details:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 749px) {
+  .shoppable-gallery {
+    padding: 2rem 1.5rem;
+  }
+  
+  .shoppable-gallery__title {
+    font-size: 2rem;
+  }
+  
+  .shoppable-gallery__subtitle {
+    font-size: 1rem;
+  }
+  
+  .shoppable-gallery__modal-content {
+    width: 90vw;
+    max-width: 350px;
+    max-height: 90vh;
+  }
+  
+  .shoppable-gallery__modal-body {
+    padding: 2rem;
+  }
+  
+  .shoppable-gallery__modal-title {
+    font-size: 1.2rem;
+  }
+  
+  .shoppable-gallery__modal-price .price {
+    font-size: 1.2rem;
+  }
+  
+  .shoppable-gallery__view-details {
+    padding: 0.9rem 1.5rem;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shoppable-gallery__item {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.shoppable-gallery__item:nth-child(1) { animation-delay: 0.1s; }
+.shoppable-gallery__item:nth-child(2) { animation-delay: 0.2s; }
+.shoppable-gallery__item:nth-child(3) { animation-delay: 0.3s; }
+.shoppable-gallery__item:nth-child(4) { animation-delay: 0.4s; }
+.shoppable-gallery__item:nth-child(5) { animation-delay: 0.5s; }
+.shoppable-gallery__item:nth-child(6) { animation-delay: 0.6s; }
+
+/* Show More 功能 - 仅PC端 */
+@media screen and (min-width: 990px) {
+  /* 默认隐藏第9个及以后的项目（不包括上传按钮） */
+  .shoppable-gallery__grid:not(.shoppable-gallery__grid--expanded) .shoppable-gallery__item:not(.shoppable-gallery__item--upload):nth-child(n+9) {
+    display: none;
+  }
+  
+  /* 未展开时：隐藏第8个普通项目，显示替换的上传按钮，隐藏最后的上传按钮 */
+  .shoppable-gallery__grid:not(.shoppable-gallery__grid--expanded) .shoppable-gallery__item--hidden-when-collapsed {
+    display: none !important;
+  }
+  
+  .shoppable-gallery__grid:not(.shoppable-gallery__grid--expanded) .shoppable-gallery__item--upload-replace {
+    display: flex !important;
+  }
+  
+  .shoppable-gallery__grid:not(.shoppable-gallery__grid--expanded) .shoppable-gallery__item--upload-last {
+    display: none !important;
+  }
+  
+  /* 展开时：显示所有项目，隐藏替换的上传按钮，显示最后的上传按钮 */
+  .shoppable-gallery__grid.shoppable-gallery__grid--expanded .shoppable-gallery__item--hidden-when-collapsed {
+    display: block !important;
+  }
+  
+  .shoppable-gallery__grid.shoppable-gallery__grid--expanded .shoppable-gallery__item--upload-replace {
+    display: none !important;
+  }
+  
+  .shoppable-gallery__grid.shoppable-gallery__grid--expanded .shoppable-gallery__item--upload-last {
+    display: flex !important;
+  }
+  
+  /* 默认：替换的上传按钮隐藏，最后的上传按钮显示 */
+  .shoppable-gallery__item--upload-replace {
+    display: none !important;
+  }
+  
+  .shoppable-gallery__item--upload-last {
+    display: flex !important;
+  }
+  
+  /* 未展开且项目数 >= 8 时：显示替换的上传按钮，隐藏最后的上传按钮 */
+  .shoppable-gallery__grid:not(.shoppable-gallery__grid--expanded) .shoppable-gallery__item--upload-replace {
+    display: flex !important;
+  }
+  
+  .shoppable-gallery__grid:not(.shoppable-gallery__grid--expanded) .shoppable-gallery__item--upload-last {
+    display: none !important;
+  }
+}
+
+.shoppable-gallery__show-more-wrapper {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+/* 移动端隐藏显示更多按钮 */
+@media screen and (max-width: 989px) {
+  .shoppable-gallery__show-more-wrapper {
+    display: none;
+  }
+}
+
+.shoppable-gallery__show-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(var(--color-button-text));
+  background: rgb(var(--color-button));
+  border: 2px solid rgb(var(--color-button));
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.shoppable-gallery__show-more-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.shoppable-gallery__show-more-btn .show-more-icon {
+  transition: transform 0.3s ease;
+}
+
+.shoppable-gallery__show-more-btn--expanded .show-more-icon {
+  transform: rotate(180deg);
+}
+
+/* Pending items styling */
+.shoppable-gallery__item--pending {
+  opacity: 0.7;
+  position: relative;
+}
+
+.shoppable-gallery__item--pending::after {
+  content: "Pending Review";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 193, 7, 0.9);
+  color: #000;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Upload box styling - 作为最后一个框 */
+.shoppable-gallery__item--upload {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  background: rgba(var(--color-foreground), 0.02);
+  border: 2px dashed rgba(var(--color-foreground), 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.shoppable-gallery__item--upload:hover {
+  background: rgba(var(--color-button), 0.05);
+  border-color: rgb(var(--color-button));
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.shoppable-gallery__upload-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.shoppable-gallery__upload-box-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(var(--color-foreground), 0.7);
+  transition: all 0.3s ease;
+  padding: 1.5rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.shoppable-gallery__item--upload:hover .shoppable-gallery__upload-box-btn {
+  color: rgb(var(--color-button));
+}
+
+.shoppable-gallery__upload-box-btn svg {
+  width: 48px;
+  height: 48px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.shoppable-gallery__item--upload:hover .shoppable-gallery__upload-box-btn svg {
+  transform: scale(1.1);
+}
+
+.shoppable-gallery__upload-box-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.3;
+}
+
+@media screen and (max-width: 749px) {
+  .shoppable-gallery__upload-box-btn {
+    padding: 1rem;
+  }
+  
+  .shoppable-gallery__upload-box-btn svg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .shoppable-gallery__upload-box-text {
+    font-size: 1rem;
+  }
+}
+
+/* Upload Modal Styles */
+.shoppable-gallery__upload-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.shoppable-gallery__upload-modal--active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.shoppable-gallery__upload-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+}
+
+.shoppable-gallery__upload-modal-content {
+  position: relative;
+  background: rgb(var(--color-background));
+  border-radius: 1rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 600px;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.shoppable-gallery__upload-modal--active .shoppable-gallery__upload-modal-content {
+  transform: scale(1);
+}
+
+.shoppable-gallery__upload-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.shoppable-gallery__upload-modal-close:hover {
+  background: rgb(var(--color-button));
+  color: rgb(var(--color-button-text));
+}
+
+.shoppable-gallery__upload-modal-body {
+  padding: 2.5rem;
+}
+
+.shoppable-gallery__upload-modal-title {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 0.5rem 0;
+  color: rgb(var(--color-foreground));
+}
+
+.shoppable-gallery__upload-modal-description {
+  text-align: center;
+  color: rgba(var(--color-foreground), 0.7);
+  margin: 0 0 2rem 0;
+  font-size: 1rem;
+}
+
+/* Acerill Form Builder 容器样式 */
+.acerill-form-wrapper {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.acerill-form-container {
+  width: 100%;
+  min-height: 200px;
+}
+
+/* 确保 Acerill 表单在模态框中正确显示 */
+.shoppable-gallery__upload-modal-body .acerill-form-wrapper {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.shoppable-gallery__upload-modal-body .acerill-form-container {
+  width: 100%;
+}
+
+.shoppable-gallery__upload-form {
+  width: 100%;
+}
+
+.shoppable-gallery__upload-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.shoppable-gallery__upload-fields .field {
+  display: flex;
+  flex-direction: column;
+}
+
+.shoppable-gallery__upload-fields .field__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: rgb(var(--color-foreground));
+}
+
+.shoppable-gallery__upload-fields .field__label .required {
+  color: rgb(239, 68, 68);
+}
+
+.shoppable-gallery__upload-fields .field__input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(var(--color-foreground), 0.2);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: rgb(var(--color-background));
+  color: rgb(var(--color-foreground));
+  transition: border-color 0.3s ease;
+}
+
+.shoppable-gallery__upload-fields .field__input:focus {
+  outline: none;
+  border-color: rgb(var(--color-button));
+  box-shadow: 0 0 0 3px rgba(var(--color-button), 0.1);
+}
+
+.shoppable-gallery__upload-fields .text-area {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.shoppable-gallery__upload-fields .field__help {
+  font-size: 0.875rem;
+  color: rgba(var(--color-foreground), 0.6);
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+
+.shoppable-gallery__upload-fields .file-upload-wrapper {
+  position: relative;
+}
+
+.shoppable-gallery__upload-fields .file-upload-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.shoppable-gallery__upload-fields .file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border: 2px dashed rgba(var(--color-foreground), 0.3);
+  border-radius: 0.5rem;
+  background: rgba(var(--color-foreground), 0.02);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 150px;
+}
+
+.shoppable-gallery__upload-fields .file-upload-label:hover {
+  border-color: rgb(var(--color-button));
+  background: rgba(var(--color-button), 0.05);
+}
+
+.shoppable-gallery__upload-fields .file-upload-label svg {
+  margin-bottom: 0.75rem;
+  color: rgba(var(--color-foreground), 0.6);
+  transition: color 0.3s ease;
+}
+
+.shoppable-gallery__upload-fields .file-upload-label:hover svg {
+  color: rgb(var(--color-button));
+}
+
+.shoppable-gallery__upload-fields .file-upload-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(var(--color-foreground));
+  margin-bottom: 0.5rem;
+}
+
+.shoppable-gallery__upload-fields .file-upload-filename {
+  font-size: 0.875rem;
+  color: rgba(var(--color-foreground), 0.6);
+  margin-top: 0.5rem;
+  word-break: break-all;
+  text-align: center;
+}
+
+.shoppable-gallery__upload-fields .file-preview {
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  max-height: 300px;
+  display: none;
+}
+
+.shoppable-gallery__upload-fields .file-preview:has(img) {
+  display: block;
+}
+
+.shoppable-gallery__upload-fields .file-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.shoppable-gallery__upload-submit {
+  text-align: center;
+}
+
+.shoppable-gallery__upload-submit .button {
+  min-width: 200px;
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.shoppable-gallery__upload-submit .button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.shoppable-gallery__upload-message {
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shoppable-gallery__upload-message--success {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(22, 163, 74);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.shoppable-gallery__upload-message--error {
+  background: rgba(239, 68, 68, 0.1);
+  color: rgb(220, 38, 38);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.shoppable-gallery__upload-message svg {
+  flex-shrink: 0;
+}
+
+.shoppable-gallery__upload-message p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+@media screen and (max-width: 749px) {
+  .shoppable-gallery__upload-modal-content {
+    width: 90vw;
+    max-width: 100%;
+  }
+  
+  .shoppable-gallery__upload-modal-body {
+    padding: 1.5rem;
+  }
+  
+  .shoppable-gallery__upload-modal-title {
+    font-size: 1.5rem;
+  }
+  
+  .shoppable-gallery__upload-submit .button {
+    width: 100%;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
